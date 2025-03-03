@@ -44,38 +44,35 @@ otp_interceptor = OTPInterceptor()
 # Start mitmproxy in a separate thread
 def start_mitmproxy():
     try:
-        subprocess.Popen(["mitmdump", "-s", "mitm_script.py", "--set", "block_global=false"])
+        subprocess.Popen(["mitmdump", "-s", __file__, "--set", "block_global=false"])
     except Exception as e:
         print(f"[ERROR] Failed to start mitmproxy: {e}")
         os._exit(1)
 
+# Start mitmproxy first
 threading.Thread(target=start_mitmproxy, daemon=True).start()
+
+# Wait a bit to ensure mitmproxy starts before Selenium
+time.sleep(5)
 
 # Configure Selenium WebDriver
 chrome_options = Options()
 chrome_options.add_argument("--headless")  # Run browser in the background
 chrome_options.add_argument("--log-level=3")  # Suppress logs
-chrome_options.add_argument(f'--proxy-server=localhost:8080')  # Use mitmproxy as proxy
+chrome_options.add_argument("--proxy-server=http://127.0.0.1:8080")  # Set proxy to mitmproxy's default
 
 driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
 
-def wait_for_otp(timeout=60):
+def wait_for_otp():
     """Waits for OTP after the user requests it"""
     print("[INFO] Waiting for user to request OTP...")
-    start_time = time.time()
 
     while not otp_interceptor.otp_requested:
-        if time.time() - start_time > timeout:
-            print("[ERROR] Timeout waiting for OTP request.")
-            return None
         time.sleep(1)
 
     print("[INFO] OTP request detected! Listening for OTP...")
 
     while not otp_interceptor.otp_code:
-        if time.time() - start_time > timeout:
-            print("[ERROR] Timeout waiting for OTP.")
-            return None
         time.sleep(1)
 
     print(f"\n🔐 Captured OTP: {otp_interceptor.otp_code}\n")
