@@ -1,0 +1,29 @@
+# Ignore Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore virtual environments
+venv/
+.env/
+
+# Ignore logs and debug files
+*.log
+debug.log
+
+# Ignore system files (macOS, Linux, Windows)
+.DS_Store
+Thumbs.db
+
+# Ignore mitmproxy session dumps (if any)
+*.mitm
+
+# Ignore Selenium WebDriver logs
+chromedriver.log
+geckodriver.log
+
+# Ignore compiled distributions (if packaging later)
+dist/
+build/
+*.egg-info/
